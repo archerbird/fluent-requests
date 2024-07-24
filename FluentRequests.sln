@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A1493842-ACDF-4867-8175-00430FA954C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpPipelines.Abstractions", "src\HttpPipelines.Abstractions\HttpPipelines.Abstractions.csproj", "{FC9C2FDD-735D-4765-848D-E83B74EEB25C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentRequests.Http", "src\FluentRequests.Http\FluentRequests.Http.csproj", "{E10694CB-5ED5-4DC2-92A2-6969EF90A764}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{3F93DB18-2E3D-4A9C-9569-38998FDAB8FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentRequests.Http.Samples", "samples\FluentRequests.Http.Samples\FluentRequests.Http.Samples.csproj", "{2F9423C1-1F8E-4AC0-A174-379657A36090}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{648D0E5B-FCBA-474F-8FEC-AA76E20CABA3}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FC9C2FDD-735D-4765-848D-E83B74EEB25C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC9C2FDD-735D-4765-848D-E83B74EEB25C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC9C2FDD-735D-4765-848D-E83B74EEB25C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC9C2FDD-735D-4765-848D-E83B74EEB25C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E10694CB-5ED5-4DC2-92A2-6969EF90A764}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E10694CB-5ED5-4DC2-92A2-6969EF90A764}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E10694CB-5ED5-4DC2-92A2-6969EF90A764}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E10694CB-5ED5-4DC2-92A2-6969EF90A764}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F9423C1-1F8E-4AC0-A174-379657A36090}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F9423C1-1F8E-4AC0-A174-379657A36090}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F9423C1-1F8E-4AC0-A174-379657A36090}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F9423C1-1F8E-4AC0-A174-379657A36090}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FC9C2FDD-735D-4765-848D-E83B74EEB25C} = {A1493842-ACDF-4867-8175-00430FA954C9}
+		{E10694CB-5ED5-4DC2-92A2-6969EF90A764} = {A1493842-ACDF-4867-8175-00430FA954C9}
+		{2F9423C1-1F8E-4AC0-A174-379657A36090} = {3F93DB18-2E3D-4A9C-9569-38998FDAB8FE}
+	EndGlobalSection
+EndGlobal
