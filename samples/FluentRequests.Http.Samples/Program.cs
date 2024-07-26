@@ -18,14 +18,11 @@ var client = new HttpClient();
 var builder = client.BuildRequest()
     .WithMethod(HttpMethod.Post)
     .WithBody(new RequestBody("Test", 69))
-    .WithUri("http://www.example.com")
-    .WithContentEncoder(new XmlEncoder<RequestBody>())
-    .WithCompletionOption(HttpCompletionOption.ResponseHeadersRead)
-    .WithMethod(HttpMethod.Get)
-    .WithContentEncoder(x => JsonContent.Create(x));
-    
-var builder2 = builder.WithAutoDecoding(new JsonDecoder<Response>());
+    .WithUri("https://www.example.com")
+    .UsingEncoder(x => JsonContent.Create(x))
+    .DeserializeTo<Response>()
+    .UsingDecoder(new XmlDecoder<Response>())
+    .SendAsync();
 
-var result = await builder.SendAsync();
     public record RequestBody(string Title, int UserId);
     public record Response(int Id, int UserId);

@@ -22,14 +22,14 @@ public class HttpContentBuilder<TBody> : HttpRequestBuilder<HttpContentBuilder<T
         return this;
     }
 
-    public HttpContentBuilder<TBody> WithContentEncoder(IHttpContentEncoder<TBody> encoder)
+    public HttpContentBuilder<TBody> UsingEncoder(IHttpContentEncoder<TBody> encoder)
     {
         ArgumentNullException.ThrowIfNull(encoder, nameof(encoder));
         _encoder = encoder.EncodeContent;
         return this;
     }
 
-    public HttpContentBuilder<TBody> WithContentEncoder(Func<TBody, HttpContent> encoder)
+    public HttpContentBuilder<TBody> UsingEncoder(Func<TBody, HttpContent> encoder)
     {
         ArgumentNullException.ThrowIfNull(encoder, nameof(encoder));
         _encoder = encoder;

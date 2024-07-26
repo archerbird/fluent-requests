@@ -1,14 +1,21 @@
 namespace FluentRequests.Http;
 
-public class HttpResponseHandlingBuilder<T1> : HttpRequestBuilder<HttpResponseHandlingBuilder<T1>>
+public class HttpResponseHandlingBuilder<T1> : HttpResponseHandlingBuilder<HttpResponseHandlingBuilder<T1>, T1>
 {
-    private Dictionary<string, Func<HttpContent, CancellationToken, ValueTask<T1?>>> _decoders = [];
+    internal HttpResponseHandlingBuilder(HttpClient client) : base(client)
+    {
+    }
+}
+public class HttpResponseHandlingBuilder<TBuilder, T1> : HttpRequestBuilder<HttpResponseHandlingBuilder<TBuilder, T1>> 
+    where TBuilder : HttpResponseHandlingBuilder<TBuilder, T1>
+{
+    protected private Dictionary<string, Func<HttpContent, CancellationToken, ValueTask<T1?>>> _decoders = [];
     
     internal HttpResponseHandlingBuilder(HttpClient client) : base(client)
     {
     }
     
-    public HttpResponseHandlingBuilder<T1> WithDecoder(string media, Func<HttpContent, CancellationToken, ValueTask<T1?>> decoder)
+    public  HttpResponseHandlingBuilder<TBuilder, T1> UsingDecoder(string media, Func<HttpContent, CancellationToken, ValueTask<T1?>> decoder)
     {
         ArgumentNullException.ThrowIfNull(media, nameof(media));
         ArgumentExceptionExtensions.ThrowIfNullOrWhiteSpace(media);
@@ -22,26 +29,32 @@ public class HttpResponseHandlingBuilder<T1> : HttpRequestBuilder<HttpResponseHa
         return this;
     }
     
-    public HttpResponseHandlingBuilder<T1> WithDecoder(IHttpContentDecoder<T1> decoder)
+    public  HttpResponseHandlingBuilder<TBuilder, T1> UsingDecoder(IHttpContentDecoder<T1> decoder)
     {
         ArgumentNullException.ThrowIfNull(decoder, nameof(decoder));
         
-        WithDecoder(decoder.MediaType, decoder.DecodeContentAsync);
+        UsingDecoder(decoder.MediaType, decoder.DecodeContentAsync);
         return this;
     }
     
-    public HttpResponseHandlingBuilder<T1> WithDecoders(params IHttpContentDecoder<T1>[] decoders)
+    public HttpResponseHandlingBuilder<TBuilder, T1> UsingDecoders(params IHttpContentDecoder<T1>[] decoders)
     {
         ArgumentNullException.ThrowIfNull(decoders, nameof(decoders));
         
         foreach(var decoder in decoders)
         {
-            WithDecoder(decoder);
+            UsingDecoder(decoder);
         }
         return this;
     }
+    
+    public HttpDiscriminatedResponseHandlingBuilder<T1, TAlternate> OrTo<TAlternate>()
+    {
+        return (HttpDiscriminatedResponseHandlingBuilder<T1, TAlternate>)new HttpDiscriminatedResponseHandlingBuilder<T1,TAlternate>(_client)
+            .TransferBuilderState(this);
+    }
 
-    public new HttpResponseHandlingBuilder<T1> WithBody<TBody>(TBody body)
+    public new HttpResponseHandlingBuilder<TBuilder, T1> WithBody<TBody>(TBody body)
     {
         base.WithBody(body);
         return this;

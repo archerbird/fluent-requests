@@ -13,7 +13,7 @@ public class HttpRequestBuilder : HttpRequestBuilder<HttpRequestBuilder>
 public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpRequestBuilder<TRequestBuilder>
 {
     protected private HttpRequestMessage _request;
-    private readonly HttpClient _client;
+    protected private readonly HttpClient _client;
 
     private IHttpContentBuilder? _bodyBuilder;
     private HttpCompletionOption _completionOption = HttpCompletionOption.ResponseContentRead;
@@ -40,22 +40,19 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
         var bodyBuilder = new HttpContentBuilder<TBody>(_client);
        _bodyBuilder = bodyBuilder;
        
-        return bodyBuilder.TransferState(this).WithBody(body);
+        return bodyBuilder.TransferBuilderState(this).WithBody(body);
     }
 
-    public HttpResponseHandlingBuilder<TResponse> WithAutoDecoding<TResponse>(IHttpContentDecoder<TResponse> decoder)
+    public HttpResponseHandlingBuilder<TResponse> DeserializeTo<TResponse>()
     {
-        ArgumentNullException.ThrowIfNull(decoder, nameof(decoder));
-        return new HttpResponseHandlingBuilder<TResponse>(_client)
-            .TransferState(this)
-            .WithDecoder(decoder);
+        return (HttpResponseHandlingBuilder<TResponse>)new HttpResponseHandlingBuilder<TResponse>(_client)
+            .TransferBuilderState(this);
     }
-
-    public HttpResponseHandlingBuilder<TResponse> WithAutoDecoding<TResponse>(params IHttpContentDecoder<TResponse>[] decoders)
-    {
-        ArgumentNullException.ThrowIfNull(decoders, nameof(decoders));
-        return new HttpResponseHandlingBuilder<TResponse>(_client).WithDecoders(decoders);
-    }
+    public HttpDiscriminatedResponseHandlingBuilder<TResponse, TAlternate> DeserializeTo<TResponse, TAlternate>()
+        {
+            return (HttpDiscriminatedResponseHandlingBuilder<TResponse, TAlternate>)new HttpDiscriminatedResponseHandlingBuilder<TResponse,TAlternate>(_client)
+                .TransferBuilderState(this);
+        }
 
     /// <summary>
     /// Sets the <see cref="HttpMethod" /> for the request.
@@ -183,7 +180,7 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
         if (_request.RequestUri is null) throw new InvalidBuilderStateException(nameof(WithUri));
     }
 
-    private TRequestBuilder TransferState<T>(HttpRequestBuilder<T> builder) where T : HttpRequestBuilder<T>
+    protected private TRequestBuilder TransferBuilderState<T>(HttpRequestBuilder<T> builder) where T : HttpRequestBuilder<T>
     {
         ArgumentNullException.ThrowIfNull(builder, nameof(builder));
         _request = builder._request;
