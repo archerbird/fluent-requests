@@ -40,6 +40,12 @@ public class HttpResponseHandlingBuilder<T1> : HttpRequestBuilder<HttpResponseHa
         }
         return this;
     }
+
+    public new HttpResponseHandlingBuilder<T1> WithBody<TBody>(TBody body)
+    {
+        base.WithBody(body);
+        return this;
+    }
     
     /// <summary>
     /// Builds and sends the request and deserializes the response body to <typeparamref name="TApiModel" />.

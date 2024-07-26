@@ -18,8 +18,11 @@ var client = new HttpClient();
 var result = client.BuildRequest()
     .WithMethod(HttpMethod.Post)
     .WithBody(new RequestBody("Test", 69))
+    .WithContentEncoder(new XmlEncoder<RequestBody>())
     .WithContentEncoder(x => JsonContent.Create(x))
     .WithAutoDecoding(new JsonDecoder<Response>(), new XmlDecoder<Response>())
+    .WithMethod(HttpMethod.Post)
+    .WithBody(new RequestBody("",0))
     .SendAsync(CancellationToken.None);
 
     public record RequestBody(string Title, int UserId);

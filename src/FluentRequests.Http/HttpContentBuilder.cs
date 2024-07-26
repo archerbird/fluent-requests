@@ -2,9 +2,9 @@ using FluentRequests.Http.Json;
 
 namespace FluentRequests.Http;
 
-public interface IHttpContentBuilder
+internal interface IHttpContentBuilder
 {
-    void SetHttpContent(HttpRequestMessage request);
+    internal void SetHttpContent(HttpRequestMessage request);
 }
 
 public class HttpContentBuilder<TBody> : HttpRequestBuilder<HttpContentBuilder<TBody>>, IHttpContentBuilder
@@ -15,7 +15,7 @@ public class HttpContentBuilder<TBody> : HttpRequestBuilder<HttpContentBuilder<T
     internal HttpContentBuilder(HttpClient client) : base(client)
     {
     }
-    
+
     public HttpContentBuilder<TBody> WithBody(TBody body)
     {
         _body = body;
@@ -36,7 +36,7 @@ public class HttpContentBuilder<TBody> : HttpRequestBuilder<HttpContentBuilder<T
         return this;
     }
 
-    public void SetHttpContent(HttpRequestMessage request)
+    void IHttpContentBuilder.SetHttpContent(HttpRequestMessage request)
     {
         if (_body is null)
         {

@@ -14,22 +14,23 @@ public class HttpRequestBuilder : HttpRequestBuilder<HttpRequestBuilder>
 /// </summary>
 public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpRequestBuilder<TRequestBuilder>
 {
-    protected internal readonly HttpRequestMessage _request = new();
-    private readonly HttpClient _client;
-    
-    private string? _uri;
+    protected private HttpRequestMessage _request;
+    private HttpClient _client;
+
     private IHttpContentBuilder? _bodyBuilder;
     private HttpCompletionOption _completionOption = HttpCompletionOption.ResponseContentRead;
     private Func<HttpRequestMessage, Task>? _requestHandler;
-    private Func<HttpResponseMessage, Task> _responseHandler = response => Task.FromResult(response.EnsureSuccessStatusCode());
-    
-    
+    private Func<HttpResponseMessage, Task>? _responseHandler;
+
+
     protected HttpRequestBuilder(HttpClient client)
     {
         ArgumentNullException.ThrowIfNull(client, nameof(client));
         _client = client;
+        _request = new HttpRequestMessage();
     }
-    
+
+
     public HttpContentBuilder<TBody> WithBody<TBody>(TBody body)
     {
         ArgumentNullException.ThrowIfNull(body, nameof(body));
@@ -39,31 +40,32 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
         }
 
         _bodyBuilder = new HttpContentBuilder<TBody>(_client)
+            .TransferState(this)
             .WithBody(body);
         return (HttpContentBuilder<TBody>)_bodyBuilder;
     }
-    
+
     public HttpResponseHandlingBuilder<TResponse> WithAutoDecoding<TResponse>(IHttpContentDecoder<TResponse> decoder)
     {
         ArgumentNullException.ThrowIfNull(decoder, nameof(decoder));
         return new HttpResponseHandlingBuilder<TResponse>(_client).WithDecoder(decoder);
     }
-    
+
     public HttpResponseHandlingBuilder<TResponse> WithAutoDecoding<TResponse>(params IHttpContentDecoder<TResponse>[] decoders)
-        {
-            ArgumentNullException.ThrowIfNull(decoders, nameof(decoders));
-            return new HttpResponseHandlingBuilder<TResponse>(_client).WithDecoders(decoders);
-        }
+    {
+        ArgumentNullException.ThrowIfNull(decoders, nameof(decoders));
+        return new HttpResponseHandlingBuilder<TResponse>(_client).WithDecoders(decoders);
+    }
 
     /// <summary>
     /// Sets the <see cref="HttpMethod" /> for the request.
     /// </summary>
     /// <param name="method"></param>
     /// <returns>The current instance of the <see cref="HttpRequestBuilder" />.</returns>
-    public HttpRequestBuilder<TRequestBuilder> WithMethod(HttpMethod method)
+    public TRequestBuilder WithMethod(HttpMethod method)
     {
         _request.Method = method;
-        return this;
+        return (TRequestBuilder)this;
     }
 
     /// <summary>
@@ -71,10 +73,10 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
     /// </summary>
     /// <param name="uri"><see cref="Uri" />.</param>
     /// <returns>The current instance of the <see cref="HttpRequestBuilder" />.</returns>
-    public HttpRequestBuilder<TRequestBuilder> WithUri(Uri uri)
+    public TRequestBuilder WithUri(Uri uri)
     {
         _request.RequestUri = uri;
-        return this;
+        return (TRequestBuilder)this;
     }
 
     /// <summary>
@@ -82,7 +84,7 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
     /// </summary>
     /// <param name="uri">A string representation of the URI.</param>
     /// <returns>The current instance of the <see cref="HttpRequestBuilder" />.</returns>
-    public HttpRequestBuilder<TRequestBuilder> WithUri(string uri)
+    public TRequestBuilder WithUri(string uri)
     {
         ArgumentNullException.ThrowIfNull(uri, nameof(uri));
         return WithUri(new Uri(uri));
@@ -95,12 +97,12 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
     /// <param name="key"></param>
     /// <param name="value"></param>
     /// <returns>The current instance of the <see cref="HttpRequestBuilder" />.</returns>
-    public HttpRequestBuilder<TRequestBuilder> IncludeHeader(string key, string value)
+    public TRequestBuilder IncludeHeader(string key, string value)
     {
         ArgumentNullException.ThrowIfNull(key, nameof(key));
         ArgumentNullException.ThrowIfNull(value, nameof(value));
         _request.Headers.Add(key, value);
-        return this;
+        return (TRequestBuilder)this;
     }
 
     /// <summary>
@@ -110,30 +112,30 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
     /// </summary>
     /// <param name="completionOption">The <see cref="HttpCompletionOption"/>.</param>
     /// <returns>The current instance <see cref="HttpRequestBuilder"/>.</returns>
-    public HttpRequestBuilder<TRequestBuilder> WithCompletionOption(HttpCompletionOption completionOption)
+    public TRequestBuilder WithCompletionOption(HttpCompletionOption completionOption)
     {
         _completionOption = completionOption;
-        return this;
+        return (TRequestBuilder)this;
     }
-    
+
     /// <summary>
     /// Sets an async action to be executed on the response, before it is deserialized. You can use this to handle the response in a custom way, such as logging or error handling.
     /// If this is not set, the default behavior is to throw an <see cref="HttpRequestException"/> if the response is not successful.
     /// </summary>
     /// <param name="responseHandler"></param>
     /// <returns>The current instance of the <see cref="HttpRequestBuilder" />.</returns>
-    public HttpRequestBuilder<TRequestBuilder> WithResponseHandler(Func<HttpResponseMessage, Task> responseHandler)
+    public TRequestBuilder WithResponseHandler(Func<HttpResponseMessage, Task> responseHandler)
     {
         ArgumentNullException.ThrowIfNull(responseHandler, nameof(responseHandler));
         _responseHandler = responseHandler;
-        return this;
+        return (TRequestBuilder)this;
     }
-    
-    public HttpRequestBuilder<TRequestBuilder> WithRequestHandler(Func<HttpRequestMessage, Task> requestHandler)
+
+    public TRequestBuilder WithRequestHandler(Func<HttpRequestMessage, Task> requestHandler)
     {
         ArgumentNullException.ThrowIfNull(requestHandler, nameof(requestHandler));
         _requestHandler = requestHandler;
-        return this;
+        return (TRequestBuilder)this;
     }
 
 
@@ -151,7 +153,7 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
         return await InternalSendAsync(cancellationToken);
     }
 
-    protected internal async Task<HttpResponseMessage> InternalSendAsync(CancellationToken cancellationToken = default)
+    protected async Task<HttpResponseMessage> InternalSendAsync(CancellationToken cancellationToken = default)
     {
         ValidateBuilderState();
         cancellationToken.ThrowIfCancellationRequested();
@@ -162,8 +164,8 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
         {
             await _requestHandler.Invoke(_request);
         }
-        
-        var response = await _client 
+
+        var response = await _client
             .SendAsync(_request, _completionOption, cancellationToken);
 
         await _responseHandler.Invoke(response);
@@ -175,5 +177,15 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
         if (_request.Method is null) throw new InvalidBuilderStateException(nameof(WithMethod));
 
         if (_request.RequestUri is null) throw new InvalidBuilderStateException(nameof(WithUri));
+    }
+
+    private TRequestBuilder TransferState<T>(HttpRequestBuilder<T> builder) where T : HttpRequestBuilder<T>
+    {
+        ArgumentNullException.ThrowIfNull(builder, nameof(builder));
+        _request = builder._request;
+        _bodyBuilder = builder._bodyBuilder;
+        _requestHandler = builder._requestHandler;
+        _responseHandler = builder._responseHandler;
+        return (TRequestBuilder)this;
     }
 }
