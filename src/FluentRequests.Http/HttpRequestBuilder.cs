@@ -1,5 +1,3 @@
-using System.Net.Http.Headers;
-
 namespace FluentRequests.Http;
 
 public class HttpRequestBuilder : HttpRequestBuilder<HttpRequestBuilder>
@@ -15,7 +13,7 @@ public class HttpRequestBuilder : HttpRequestBuilder<HttpRequestBuilder>
 public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpRequestBuilder<TRequestBuilder>
 {
     protected private HttpRequestMessage _request;
-    private HttpClient _client;
+    private readonly HttpClient _client;
 
     private IHttpContentBuilder? _bodyBuilder;
     private HttpCompletionOption _completionOption = HttpCompletionOption.ResponseContentRead;
@@ -39,16 +37,18 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
             return builder.WithBody(body);
         }
 
-        _bodyBuilder = new HttpContentBuilder<TBody>(_client)
-            .TransferState(this)
-            .WithBody(body);
-        return (HttpContentBuilder<TBody>)_bodyBuilder;
+        var bodyBuilder = new HttpContentBuilder<TBody>(_client);
+       _bodyBuilder = bodyBuilder;
+       
+        return bodyBuilder.TransferState(this).WithBody(body);
     }
 
     public HttpResponseHandlingBuilder<TResponse> WithAutoDecoding<TResponse>(IHttpContentDecoder<TResponse> decoder)
     {
         ArgumentNullException.ThrowIfNull(decoder, nameof(decoder));
-        return new HttpResponseHandlingBuilder<TResponse>(_client).WithDecoder(decoder);
+        return new HttpResponseHandlingBuilder<TResponse>(_client)
+            .TransferState(this)
+            .WithDecoder(decoder);
     }
 
     public HttpResponseHandlingBuilder<TResponse> WithAutoDecoding<TResponse>(params IHttpContentDecoder<TResponse>[] decoders)
@@ -168,11 +168,15 @@ public class HttpRequestBuilder<TRequestBuilder> where TRequestBuilder : HttpReq
         var response = await _client
             .SendAsync(_request, _completionOption, cancellationToken);
 
-        await _responseHandler.Invoke(response);
+        if (_responseHandler != null)
+        {
+            await _responseHandler.Invoke(response);
+        }
+
         return response;
     }
 
-    protected virtual void ValidateBuilderState()
+    private void ValidateBuilderState()
     {
         if (_request.Method is null) throw new InvalidBuilderStateException(nameof(WithMethod));
 

@@ -15,15 +15,17 @@ Console.WriteLine("Hello, World!");
 
 var client = new HttpClient();
 
-var result = client.BuildRequest()
+var builder = client.BuildRequest()
     .WithMethod(HttpMethod.Post)
     .WithBody(new RequestBody("Test", 69))
+    .WithUri("http://www.example.com")
     .WithContentEncoder(new XmlEncoder<RequestBody>())
-    .WithContentEncoder(x => JsonContent.Create(x))
-    .WithAutoDecoding(new JsonDecoder<Response>(), new XmlDecoder<Response>())
-    .WithMethod(HttpMethod.Post)
-    .WithBody(new RequestBody("",0))
-    .SendAsync(CancellationToken.None);
+    .WithCompletionOption(HttpCompletionOption.ResponseHeadersRead)
+    .WithMethod(HttpMethod.Get)
+    .WithContentEncoder(x => JsonContent.Create(x));
+    
+var builder2 = builder.WithAutoDecoding(new JsonDecoder<Response>());
 
+var result = await builder.SendAsync();
     public record RequestBody(string Title, int UserId);
     public record Response(int Id, int UserId);
